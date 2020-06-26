@@ -76,16 +76,12 @@ public class Backjoon17779 {
                 }
                 if( j < x + d1 && i <= y ) {
                     sum[1] += map[j][i];
-                    visited[j][i] = 1;
                 }else if( j <= x + d2 && y < i ){
                     sum[2] += map[j][i];
-                    visited[j][i] = 2;
                 }else if( x + d1 <= j && i < y - d1 + d2 ){
                     sum[3] += map[j][i];
-                    visited[j][i] = 3;
                 }else if( x + d2 < j && y - d1 + d2 <= i ){
                     sum[4] += map[j][i];
-                    visited[j][i] = 4;
                 }
             }
         }
