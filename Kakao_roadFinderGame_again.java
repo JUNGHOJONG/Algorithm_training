@@ -3,116 +3,91 @@ import java.util.ArrayList;
 import java.util.PriorityQueue;
 class Kakao_roadFinderGame_again {
 
-    public static class TreeNode implements Comparable<TreeNode>{
+    public static class TreeNode implements Comparable<TreeNode> {
         private int x;
         private int y;
         private int index;
-        public TreeNode( int x, int y, int index ){
+        private TreeNode leftChild;
+        private TreeNode rightChild;
+
+        public TreeNode(int x, int y, int index) {
             this.x = x;
             this.y = y;
             this.index = index;
+            leftChild = null;
+            rightChild = null;
         }
         @Override
         public int compareTo(TreeNode temp) {
-            return ( this.y >= temp.y ? -1 : 1 );
-        }
-    }
-
-    public static class BinaryTree_generic {
-
-        public static class Node<TreeNode> {
-            private TreeNode data;
-            private Node<TreeNode> rightChild;
-            private Node<TreeNode> leftChild;
-            private Node<TreeNode> parent;
-
-            public Node(TreeNode data) {
-                this.data = data;
-                rightChild = null;
-                leftChild = null;
-                parent = null;
-            }
-        }
-
-        private Node<TreeNode> root;
-        private int size = 0;
-
-        public BinaryTree_generic() {
-            root = null;
-        }
-
-        public Node<TreeNode> getRoot(){
-            return root;
-        }
-
-        public void insert(TreeNode data) {
-            Node<TreeNode> newNode = new Node<TreeNode>(data);
-            if (root == null) {
-                root = newNode;
-                size++;
-                return;
-            }
-            Node<TreeNode> currentNode = findInsertPosition(data);
-            if (data.x <= currentNode.data.x) {
-                currentNode.leftChild = newNode;
-                newNode.parent = currentNode;
-            } else {
-                currentNode.rightChild = newNode;
-                newNode.parent = currentNode;
-            }
-            size++;
-        }
-
-        public Node<TreeNode> findInsertPosition(TreeNode data) {
-            Node<TreeNode> parentNode = null;
-            Node<TreeNode> currentNode = root;
-            while (currentNode != null) {
-                parentNode = currentNode;
-                if (data.x <= currentNode.data.x) {
-                    currentNode = currentNode.leftChild;
-                } else {
-                    currentNode = currentNode.rightChild;
-                }
-            }
-            return parentNode;
-        }
-
-        public void preorderTraversal( Node<TreeNode> rootNode, ArrayList list ) {
-            if( rootNode != null ) {
-                list.add( rootNode.data.index );
-                preorderTraversal( rootNode.leftChild, list );
-                preorderTraversal( rootNode.rightChild, list );
-            }
-        }
-
-        public void postorderTraversal( Node<TreeNode> rootNode, ArrayList list ) {
-            if( rootNode != null ) {
-                postorderTraversal( rootNode.leftChild, list );
-                postorderTraversal( rootNode.rightChild, list );
-                list.add( rootNode.data.index );
-            }
+            return (this.y >= temp.y ? -1 : 1);
         }
     }
 
     private static PriorityQueue<TreeNode> priorityQueue = new PriorityQueue<>();
 
     public int[][] solution(int[][] nodeinfo) {
-        BinaryTree_generic binaryTree_generic = new BinaryTree_generic();
-        for( int i=0; i<nodeinfo.length; i++ ){
-            priorityQueue.add( new TreeNode( nodeinfo[i][0], nodeinfo[i][1], i+1 ));
+        descendingSortTreeNodeWithYposition( nodeinfo );
+        TreeNode root = priorityQueue.poll();
+        makeBinaryTree( root );
+        int[][] output = getOutput( nodeinfo, root );
+        return output;
+    }
+
+    public void descendingSortTreeNodeWithYposition(int[][] nodeinfo){
+        for (int i = 0; i < nodeinfo.length; i++) {
+            priorityQueue.add(new TreeNode(nodeinfo[i][0], nodeinfo[i][1], i + 1));
         }
-        while(!priorityQueue.isEmpty()){
-            binaryTree_generic.insert( priorityQueue.poll() );
+    }
+
+    public void makeBinaryTree( TreeNode root ){
+        while (!priorityQueue.isEmpty()) {
+            insert( root, priorityQueue.poll() );
         }
+    }
+
+    public int[][] getOutput(int[][] nodeinfo, TreeNode root ){
         int[][] output = new int[2][nodeinfo.length];
         ArrayList<Integer> list1 = new ArrayList<>();
         ArrayList<Integer> list2 = new ArrayList<>();
-        binaryTree_generic.preorderTraversal( binaryTree_generic.getRoot(), list1 );
-        binaryTree_generic.postorderTraversal( binaryTree_generic.getRoot(), list2 );
-        for( int i=0; i<output[0].length; i++ ){
+        preorderTraversal( root, list1 );
+        postorderTraversal( root, list2 );
+
+        for (int i = 0; i < output[0].length; i++) {
             output[0][i] = list1.get(i);
             output[1][i] = list2.get(i);
         }
         return output;
+    }
+
+    public void insert( TreeNode root, TreeNode nodeToInsert ) {
+        if( root.x >= nodeToInsert.x ){
+            if( root.leftChild == null ){
+                root.leftChild = nodeToInsert;
+            }else{
+                insert( root.leftChild, nodeToInsert );
+            }
+        }else{
+            if( root.rightChild == null ){
+                root.rightChild = nodeToInsert;
+            }else{
+                insert( root.rightChild, nodeToInsert );
+            }
+        }
+    }
+
+    public void preorderTraversal( TreeNode rootNode, ArrayList list ) {
+        if( rootNode != null ){
+            list.add(rootNode.index);
+            preorderTraversal( rootNode.leftChild, list );
+            preorderTraversal( rootNode.rightChild, list );
+        }
+    }
+
+    public void postorderTraversal( TreeNode rootNode, ArrayList list ) {
+        if( rootNode != null ){
+            postorderTraversal( rootNode.leftChild, list );
+            postorderTraversal( rootNode.rightChild, list );
+            list.add(rootNode.index);
+        }
     }
 }
