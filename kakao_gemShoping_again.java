@@ -1,7 +1,5 @@
 package algorithm;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.PriorityQueue;
+import java.util.*;
 public class kakao_gemShoping_again {
     public static class Purchasement{
         private int left;
@@ -26,6 +24,7 @@ public class kakao_gemShoping_again {
         int nonRedundantGemCount = getAllNonRedundantGemCount( gems );
         doTwoPointer( gems, nonRedundantGemCount );
         int[] output = new int[2];
+        assert priorityQueue.peek() != null: "priorityQueue is null";
         output[0] = priorityQueue.peek().left + 1;
         output[1] = priorityQueue.peek().right + 1;
         System.out.println( "[" + output[0] + ", " + output[1] + "]" );
@@ -33,9 +32,7 @@ public class kakao_gemShoping_again {
 
     public static int getAllNonRedundantGemCount( String[] gems ){
         HashSet<String> hashSet = new HashSet<>();
-        for( String s : gems ){
-            hashSet.add( s );
-        }
+        Collections.addAll( hashSet, gems );
         return hashSet.size();
     }
 
@@ -50,13 +47,12 @@ public class kakao_gemShoping_again {
                 hashMap.put( gems[rightPointer], hashMap.get( gems[rightPointer] ) + 1 );
             }
             if( hashMap.size() == nonRedundantGemCount ){
-                while(true){
-                    if( hashMap.size() != nonRedundantGemCount || leftPointer >= gemSize ) break;
-                    priorityQueue.add( new Purchasement( leftPointer, rightPointer, Math.abs( leftPointer - rightPointer ) ) );
-                    if( hashMap.get( gems[leftPointer] ) == 1 ){
-                        hashMap.remove( gems[leftPointer] );
-                    }else{
-                        hashMap.put( gems[leftPointer], hashMap.get( gems[leftPointer] ) - 1 );
+                while ( hashMap.size() == nonRedundantGemCount && leftPointer < gemSize ) {
+                    priorityQueue.add(new Purchasement(leftPointer, rightPointer, Math.abs(leftPointer - rightPointer)));
+                    if ( hashMap.get(gems[leftPointer]) == 1 ) {
+                        hashMap.remove(gems[leftPointer]);
+                    } else {
+                        hashMap.put(gems[leftPointer], hashMap.get(gems[leftPointer]) - 1);
                     }
                     leftPointer++;
                 }
