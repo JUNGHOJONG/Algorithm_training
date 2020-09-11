@@ -6,6 +6,13 @@ import java.util.regex.Pattern;
 public class Kakao_2018_01_dartGame {
     public static void main(String[] args) {
         String dartResult = "1D#2S*3S";
+        Solution_dartgame processSolution = new Solution_dartgame();
+        System.out.println( processSolution.solution( dartResult ) );
+    }
+}
+
+class Solution_dartgame{
+    public int solution(String dartResult) {
         Pattern pattern = Pattern.compile( "([\\d]+)([SDT])([*#]?)" );
         Matcher matcher = pattern.matcher( dartResult );
         int beforeNumber = 0;
@@ -21,10 +28,10 @@ public class Kakao_2018_01_dartGame {
             sum += currentNumber;
             beforeNumber = currentNumber;
         }
-        System.out.println( sum );
+        return sum;
     }
 
-    public static int changeBonusToNumber( String bonus ){
+    public int changeBonusToNumber( String bonus ){
         if( bonus.equals( "S" ) ){
             return 1;
         }else if( bonus.equals( "D" ) ){
@@ -34,7 +41,7 @@ public class Kakao_2018_01_dartGame {
         }
     }
 
-    public static int changeOptionToNumber( String option ){
+    public int changeOptionToNumber( String option ){
         if( option.equals( "*" ) ){
             return 2;
         }else if( option.equals( "#" ) ){
