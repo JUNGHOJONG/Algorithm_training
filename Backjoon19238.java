@@ -8,21 +8,43 @@ public class Backjoon19238 {
     public static class Movement{
         private int positionX;
         private int positionY;
-        private int count;
-        public Movement( int positionX, int positionY, int count ){
+        private int count = 0;
+        public Movement(int positionX, int positionY){
             this.positionX = positionX;
             this.positionY = positionY;
-            this.count = count;
+        }
+        public static Movement createMovement(int x, int y){
+            return new Movement(x, y);
+        }
+        public static boolean isMovable(int x, int y){
+            return (x >= 0 && x < roadSize && y >= 0 && y < roadSize
+                    && road[y][x] == 0);
+        }
+        public void increaseDepth(Movement movement){
+            count += (movement.count + 1);
         }
     }
-    public static class Passenger{
-        private int index;
+    public static class Passenger implements Comparable<Passenger>{
         private Movement startPoint;
         private Movement endPoint;
-        public Passenger(int index, int sX, int sY, int eX, int eY){
-            this.index = index;
-            this.startPoint = new Movement(sX, sY, 0);
-            this.endPoint = new Movement(eX, eY, 0);
+        private int distance;
+        public Passenger(int sX, int sY, int eX, int eY, int distance){
+            this.startPoint = Movement.createMovement(sX, sY);
+            this.endPoint = Movement.createMovement(eX, eY);
+            this.distance = distance;
+        }
+        public void setDistance( int distance ){
+            this.distance = distance;
+        }
+        @Override
+        public int compareTo(Passenger o) {
+            if( this.distance == o.distance ){
+                if(this.startPoint.positionY == o.startPoint.positionY){
+                    return this.startPoint.positionX - o.startPoint.positionX;
+                }
+                return this.startPoint.positionY - o.startPoint.positionY;
+            }
+            return this.distance - o.distance;
         }
     }
     public static class Taxi{
@@ -30,7 +52,7 @@ public class Backjoon19238 {
         private int fuel;
         private boolean check = true;
         public Taxi(int x, int y, int fuel){
-            this.position = new Movement(x, y, 0);
+            this.position = new Movement(x, y);
             this.fuel = fuel;
         }
         public boolean movableTaxi(int distance){
@@ -47,9 +69,11 @@ public class Backjoon19238 {
         }
     }
     private static BufferedReader br = new BufferedReader( new InputStreamReader( System.in ) );
-    private static ArrayList<Passenger> passengerManagement;
+    private static HashMap<Integer, Passenger> passengerManagement;
+    private static PriorityQueue<Passenger> priorityQueue;
     private static int[] directionX = { 1, 0, -1, 0 };
     private static int[] directionY = { 0, 1, 0, -1 };
+    private static int[][] startPoint;
     private static int roadSize;
     private static int passengerInfo;
     private static Taxi taxi;
@@ -57,7 +81,8 @@ public class Backjoon19238 {
     private static int[][] copyRoad;
     public static void main(String[] args) throws IOException {
         StringTokenizer st = new StringTokenizer( br.readLine() );
-        passengerManagement = new ArrayList<>();
+        passengerManagement = new HashMap<>();
+        priorityQueue = new PriorityQueue<>();
         roadSize = Integer.parseInt( st.nextToken() );
         passengerInfo = Integer.parseInt( st.nextToken() );
         int fuel = Integer.parseInt(st.nextToken());
@@ -88,102 +113,86 @@ public class Backjoon19238 {
     }
 
     public static void initPassenger() throws IOException{
+        startPoint = new int[roadSize][roadSize];
         for( int i=0; i<passengerInfo; i++ ){
             StringTokenizer st = new StringTokenizer( br.readLine() );
             int startY = Integer.parseInt(st.nextToken())-1;
             int startX = Integer.parseInt(st.nextToken())-1;
             int endY = Integer.parseInt(st.nextToken())-1;
             int endX = Integer.parseInt(st.nextToken())-1;
-            passengerManagement.add(new Passenger(i+1, startX, startY, endX, endY));
+            startPoint[startY][startX] = i+1;
+            passengerManagement.put(i+1, new Passenger(startX, startY, endX, endY, 0));
         }
     }
 
     public static void doCommand(){
-        while(taxi.check){
-            int index = startBfs();
+        while(true){
+            startBfs(); // distance 반환
+            if(priorityQueue.size() != passengerInfo) { // 해당되는 index 반환
+                taxi.stopTaxi();
+                break;
+            }
+            Passenger temp = priorityQueue.poll();
+            assert temp != null;
+            updateFuel(temp.startPoint.positionX, temp.startPoint.positionY, temp.distance, 0);
             if( !taxi.check ) break;
-            endBfs( index );
+            resetRoad();
+
+            int distance = endBfs(temp);
+            if(distance == -1){
+                taxi.stopTaxi();
+                break;
+            }
+            updateFuel(temp.endPoint.positionX, temp.endPoint.positionY, distance, 1);
+            if( !taxi.check ) break;
+            passengerManagement.remove(
+                    startPoint[temp.startPoint.positionY][temp.startPoint.positionX]);
+            startPoint[temp.startPoint.positionY][temp.startPoint.positionX] = 0;
+            resetRoad();
+            if (passengerManagement.size() == 0) {
+                taxi.check = false;
+                break;
+            }
+            priorityQueue.clear();
+            passengerInfo--;
         }
     }
 
-    public static int startBfs(){
+    public static void startBfs(){
         Queue<Movement> queue = new LinkedList<>();
         boolean[][] visited = new boolean[roadSize][roadSize];
         visited[taxi.position.positionY][taxi.position.positionX] = true;
-        queue.add( new Movement( taxi.position.positionX, taxi.position.positionY, 0 ) );
+        queue.add(new Movement(taxi.position.positionX, taxi.position.positionY));
+        if (startPoint[taxi.position.positionY][taxi.position.positionX] != 0) { // 예외
+            Passenger passenger = passengerManagement.get(
+                    startPoint[taxi.position.positionY][taxi.position.positionX]);
+            passenger.setDistance(0);
+            priorityQueue.add(passenger);
+        }
         while(!queue.isEmpty()){
             Movement temp = queue.poll();
-            int currentX = temp.positionX;
-            int currentY = temp.positionY;
-            int currentCount = temp.count;
             for( int i=0; i<4; i++ ){
-                int nextX = currentX + directionX[i];
-                int nextY = currentY + directionY[i];
-                if( movable( nextX, nextY ) && !visited[nextY][nextX] ){
-                    visited[nextY][nextX] = true;
-                    road[nextY][nextX] = currentCount + 1;
-                    queue.add( new Movement( nextX, nextY, currentCount + 1 ) );
+                int nextX = temp.positionX + directionX[i];
+                int nextY = temp.positionY + directionY[i];
+                if (!Movement.isMovable(nextX, nextY) || visited[nextY][nextX]) continue;
+                visited[nextY][nextX] = true;
+                Movement next = Movement.createMovement(nextX, nextY);
+                next.increaseDepth(temp);
+                road[nextY][nextX] = next.count;
+                queue.add(next);
+                if (startPoint[nextY][nextX] != 0) {
+                    Passenger passenger = passengerManagement.get(startPoint[nextY][nextX]);
+                    passenger.setDistance(next.count);
+                    priorityQueue.add(passenger);
                 }
             }
         }
-        if(!isMovableAllPassenger(visited)){
-            taxi.stopTaxi();
-            return 0;
-        }
-        int distance = getShortestDistance(visited);
-        int index = getSelectedStartPassenger( distance );
-        resetRoad();
-        return index;
-    }
-
-    public static boolean movable( int nextX, int nextY ){
-        return( nextX>=0 && nextX<roadSize && nextY>=0
-                    && nextY<roadSize && road[nextY][nextX] == 0 );
-    }
-
-    public static boolean isMovableAllPassenger(boolean[][] visited){
-        for (Passenger passenger : passengerManagement) {
-            Movement temp = passenger.startPoint;
-            if (!visited[temp.positionY][temp.positionX]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static int getShortestDistance(boolean[][] visited){
-        int distance = Integer.MAX_VALUE;
-        for (Passenger passenger : passengerManagement) {
-            Movement temp = passenger.startPoint;
-            if (visited[temp.positionY][temp.positionX])
-                distance = Math.min(distance, road[temp.positionY][temp.positionX]); // 승객1의 도착지와 승객2의 출발지가 같은 경우 반례
-        }
-        return distance;
     }
 
     public static void resetRoad(){
         for( int i=0; i<roadSize; i++ ){
             System.arraycopy(copyRoad[i], 0, road[i], 0, roadSize);
         }
-    }
-
-    public static int getSelectedStartPassenger( int distance ){
-        int x = roadSize; // roadSize -1 로 하면 런타임에러(주의)
-        int y = roadSize;
-        int index = 0;
-        for (Passenger passenger : passengerManagement) {
-            Movement temp = passenger.startPoint;
-            if (road[temp.positionY][temp.positionX] == distance) {
-                if (y > temp.positionY
-                        || (y == temp.positionY && x > temp.positionX)) {
-                    x = temp.positionX;
-                    y = temp.positionY;
-                    index = passenger.index;
-                }
-            }
-        }
-        updateFuel( x, y, distance, 0 );
-        return index;
     }
 
     public static void updateFuel( int x, int y, int distance, int kind ){
@@ -196,51 +205,28 @@ public class Backjoon19238 {
         taxi.stopTaxi();
     }
 
-    public static void endBfs( int index ){
+    public static int endBfs( Passenger passenger ){
         Queue<Movement> queue = new LinkedList<>();
         boolean[][] visited = new boolean[roadSize][roadSize];
-        visited[taxi.position.positionY][taxi.position.positionX] = true;
-        queue.add( new Movement( taxi.position.positionX, taxi.position.positionY, 0 ) );
+        visited[passenger.startPoint.positionY][passenger.startPoint.positionX] = true;
+        queue.add(new Movement(passenger.startPoint.positionX, passenger.startPoint.positionY));
         while(!queue.isEmpty()){
             Movement temp = queue.poll();
-            int currentX = temp.positionX;
-            int currentY = temp.positionY;
-            int currentCount = temp.count;
             for( int i=0; i<4; i++ ){
-                int nextX = currentX + directionX[i];
-                int nextY = currentY + directionY[i];
-                if( movable( nextX, nextY ) && !visited[nextY][nextX] ){
-                    visited[nextY][nextX] = true;
-                    road[nextY][nextX] = currentCount + 1;
-                    queue.add( new Movement( nextX, nextY, currentCount + 1 ) );
-                }
+                int nextX = temp.positionX + directionX[i];
+                int nextY = temp.positionY + directionY[i];
+                if (!Movement.isMovable(nextX, nextY) || visited[nextY][nextX]) continue;
+                visited[nextY][nextX] = true;
+                Movement next = Movement.createMovement(nextX, nextY);
+                next.increaseDepth(temp);
+                road[nextY][nextX] = next.count;
+                queue.add(next);
             }
         }
-        Movement temp = getEndPoint(index);
-        assert temp != null;
-        int distance = road[temp.positionY][temp.positionX];
-        if( distance == 0 ) { // 도착지로 갈 수 없을 때
-            taxi.stopTaxi();
-            return;
+        if(visited[passenger.endPoint.positionY][passenger.endPoint.positionX]){
+            return road[passenger.endPoint.positionY][passenger.endPoint.positionX];
         }
-        updateFuel( temp.positionX, temp.positionY, distance, 1 );
-        removePassenger(index);
-        if( passengerManagement.size() == 0 ) {
-            taxi.check = false;
-            return;
-        }
-        resetRoad();
-    }
-
-    public static Movement getEndPoint(int index){
-        for(Passenger passenger : passengerManagement){
-            if(passenger.index == index) return passenger.endPoint;
-        }
-        return null;
-    }
-
-    public static void removePassenger(int index){
-        passengerManagement.removeIf(passenger -> passenger.index == index);
+        return -1;
     }
 
 }
