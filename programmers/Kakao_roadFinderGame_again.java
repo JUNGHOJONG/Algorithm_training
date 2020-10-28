@@ -1,6 +1,7 @@
-package algorithm;
+package algorithm.programmers;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
+
 class Kakao_roadFinderGame_again {
 
     public static class TreeNode implements Comparable<TreeNode> {

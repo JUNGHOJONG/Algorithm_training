@@ -1,4 +1,4 @@
-package algorithm;
+package algorithm.programmers;
 public class ExpressedInN { // 다시 풀어보기!!
     public static void main(String[] args) {
         int N = 4;

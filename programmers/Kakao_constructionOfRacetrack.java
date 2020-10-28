@@ -1,5 +1,8 @@
-package algorithm;
-import java.util.*;
+package algorithm.programmers;
+
+import java.util.LinkedList;
+import java.util.Queue;
+
 public class Kakao_constructionOfRacetrack {
     public class Road{
         private int positionX;

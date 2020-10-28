@@ -1,4 +1,4 @@
-package algorithm;
+package algorithm.leetcode;
 
 public class LeetCode_container_with_most_water {
     public static void main(String[] args) {

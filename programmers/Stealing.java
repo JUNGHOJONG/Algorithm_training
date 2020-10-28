@@ -1,4 +1,4 @@
-package algorithm;
+package algorithm.programmers;
 
 public class Stealing {
     public static void main(String[] args) {
@@ -7,6 +7,7 @@ public class Stealing {
         System.out.println(processSolution.solution(money)); //output: 4
     }
 }
+
 class Solution_Stealing {
     public int solution(int[] money) {
         return dynamicProgramming(money);

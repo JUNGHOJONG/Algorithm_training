@@ -1,7 +1,10 @@
-package algorithm;
+package algorithm.programmers;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.*;
+
 class Kakao_matchingScore_again {
     public class Web{
         private int index;

@@ -1,5 +1,7 @@
-package algorithm;
-import java.util.*;
+package algorithm.programmers;
+
+import java.util.PriorityQueue;
+
 public class ControlCamera {
     public static void main(String[] args) {
         int[][] routes = {{-20, 15}, {-14, -5}, {-18, -13}, {-5, -3}};

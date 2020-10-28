@@ -1,5 +1,10 @@
-package algorithm;
-import java.util.*;
+package algorithm.programmers;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.PriorityQueue;
+
 public class kakao_gemShoping_again {
     public static class Purchasement{
         private int left;

@@ -1,6 +1,8 @@
-package algorithm;
-import java.util.Queue;
+package algorithm.programmers;
+
 import java.util.LinkedList;
+import java.util.Queue;
+
 class Kakao_blockMovement_again {
     public static class Drone{
         private int leftX;

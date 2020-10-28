@@ -1,5 +1,6 @@
-package algorithm;
+package algorithm.programmers;
 import java.util.PriorityQueue;
+
 class Kakao_steppingStoneCrossing {
     private int[] number;
     private int[] segment;

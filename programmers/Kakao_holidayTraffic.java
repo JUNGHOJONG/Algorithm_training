@@ -1,4 +1,4 @@
-package algorithm;
+package algorithm.programmers;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
